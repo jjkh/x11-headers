@@ -1,24 +1,6 @@
 /*
  * Copyright © 2013 Ran Benita
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  */
 
 #ifndef _XKBCOMMON_COMPOSE_H
@@ -232,7 +214,7 @@ enum xkb_compose_format {
  *
  * @memberof xkb_compose_table
  */
-struct xkb_compose_table *
+XKB_EXPORT struct xkb_compose_table *
 xkb_compose_table_new_from_locale(struct xkb_context *context,
                                   const char *locale,
                                   enum xkb_compose_compile_flags flags);
@@ -256,7 +238,7 @@ xkb_compose_table_new_from_locale(struct xkb_context *context,
  *
  * @memberof xkb_compose_table
  */
-struct xkb_compose_table *
+XKB_EXPORT struct xkb_compose_table *
 xkb_compose_table_new_from_file(struct xkb_context *context,
                                 FILE *file,
                                 const char *locale,
@@ -272,7 +254,7 @@ xkb_compose_table_new_from_file(struct xkb_context *context,
  * @see xkb_compose_table_new_from_file()
  * @memberof xkb_compose_table
  */
-struct xkb_compose_table *
+XKB_EXPORT struct xkb_compose_table *
 xkb_compose_table_new_from_buffer(struct xkb_context *context,
                                   const char *buffer, size_t length,
                                   const char *locale,
@@ -286,7 +268,7 @@ xkb_compose_table_new_from_buffer(struct xkb_context *context,
  *
  * @memberof xkb_compose_table
  */
-struct xkb_compose_table *
+XKB_EXPORT struct xkb_compose_table *
 xkb_compose_table_ref(struct xkb_compose_table *table);
 
 /**
@@ -296,8 +278,145 @@ xkb_compose_table_ref(struct xkb_compose_table *table);
  *
  * @memberof xkb_compose_table
  */
-void
+XKB_EXPORT void
 xkb_compose_table_unref(struct xkb_compose_table *table);
+
+/**
+ * @struct xkb_compose_table_entry
+ * Opaque Compose table entry object.
+ *
+ * Represents a single entry in a Compose file in the iteration API.
+ * It is immutable.
+ *
+ * @sa xkb_compose_table_iterator_new
+ * @since 1.6.0
+ */
+struct xkb_compose_table_entry;
+
+/**
+ * Get the left-hand keysym sequence of a Compose table entry.
+ *
+ * For example, given the following entry:
+ *
+ * ```
+ * <dead_tilde> <space> : "~" asciitilde # TILDE
+ * ```
+ *
+ * it will return `{XKB_KEY_dead_tilde, XKB_KEY_space}`.
+ *
+ * @param[in]  entry The compose table entry object to process.
+ *
+ * @param[out] sequence_length Number of keysyms in the sequence.
+ *
+ * @returns The array of left-hand side keysyms.  The number of keysyms
+ * is returned in the @p sequence_length out-parameter.
+ *
+ * @memberof xkb_compose_table_entry
+ * @since 1.6.0
+ */
+XKB_EXPORT const xkb_keysym_t *
+xkb_compose_table_entry_sequence(struct xkb_compose_table_entry *entry,
+                                 size_t *sequence_length);
+
+/**
+ * Get the right-hand result keysym of a Compose table entry.
+ *
+ * For example, given the following entry:
+ *
+ * ```
+ * <dead_tilde> <space> : "~" asciitilde # TILDE
+ * ```
+ *
+ * it will return `XKB_KEY_asciitilde`.
+ *
+ * The keysym is optional; if the entry does not specify a keysym,
+ * returns `XKB_KEY_NoSymbol`.
+ *
+ * @memberof xkb_compose_table_entry
+ * @since 1.6.0
+ */
+XKB_EXPORT xkb_keysym_t
+xkb_compose_table_entry_keysym(struct xkb_compose_table_entry *entry);
+
+/**
+ * Get the right-hand result string of a Compose table entry.
+ *
+ * The string is UTF-8 encoded and NULL-terminated.
+ *
+ * For example, given the following entry:
+ *
+ * ```
+ * <dead_tilde> <space> : "~" asciitilde # TILDE
+ * ```
+ *
+ * it will return `"~"`.
+ *
+ * The string is optional; if the entry does not specify a string,
+ * returns the empty string.
+ *
+ * @memberof xkb_compose_table_entry
+ * @since 1.6.0
+ */
+XKB_EXPORT const char *
+xkb_compose_table_entry_utf8(struct xkb_compose_table_entry *entry);
+
+/**
+ * @struct xkb_compose_table_iterator
+ * Iterator over a compose table’s entries.
+ *
+ * @sa xkb_compose_table_iterator_new()
+ * @since 1.6.0
+ */
+struct xkb_compose_table_iterator;
+
+/**
+ * Create a new iterator for a compose table.
+ *
+ * Intended use:
+ *
+ * ```c
+ * struct xkb_compose_table_iterator *iter = xkb_compose_table_iterator_new(compose_table);
+ * struct xkb_compose_table_entry *entry;
+ * while ((entry = xkb_compose_table_iterator_next(iter))) {
+ *     // ...
+ * }
+ * xkb_compose_table_iterator_free(iter);
+ * ```
+ *
+ * @returns A new compose table iterator, or `NULL` on failure.
+ *
+ * @memberof xkb_compose_table_iterator
+ * @sa xkb_compose_table_iterator_free()
+ * @since 1.6.0
+ */
+XKB_EXPORT struct xkb_compose_table_iterator *
+xkb_compose_table_iterator_new(struct xkb_compose_table *table);
+
+/**
+ * Free a compose iterator.
+ *
+ * @memberof xkb_compose_table_iterator
+ * @since 1.6.0
+ */
+XKB_EXPORT void
+xkb_compose_table_iterator_free(struct xkb_compose_table_iterator *iter);
+
+/**
+ * Get the next compose entry from a compose table iterator.
+ *
+ * The entries are returned in lexicographic order of the left-hand
+ * side of entries. This does not correspond to the order in which
+ * the entries appear in the Compose file.
+ *
+ * @attention The return value is valid until the next call to this function.
+ *
+ * Returns `NULL` in case there is no more entries.
+ *
+ * @memberof xkb_compose_table_iterator
+ * @since 1.6.0
+ */
+XKB_EXPORT struct xkb_compose_table_entry *
+xkb_compose_table_iterator_next(struct xkb_compose_table_iterator *iter);
 
 /** Flags for compose state creation. */
 enum xkb_compose_state_flags {
@@ -317,7 +436,7 @@ enum xkb_compose_state_flags {
  *
  * @memberof xkb_compose_state
  */
-struct xkb_compose_state *
+XKB_EXPORT struct xkb_compose_state *
 xkb_compose_state_new(struct xkb_compose_table *table,
                       enum xkb_compose_state_flags flags);
 
@@ -328,7 +447,7 @@ xkb_compose_state_new(struct xkb_compose_table *table,
  *
  * @memberof xkb_compose_state
  */
-struct xkb_compose_state *
+XKB_EXPORT struct xkb_compose_state *
 xkb_compose_state_ref(struct xkb_compose_state *state);
 
 /**
@@ -338,7 +457,7 @@ xkb_compose_state_ref(struct xkb_compose_state *state);
  *
  * @memberof xkb_compose_state
  */
-void
+XKB_EXPORT void
 xkb_compose_state_unref(struct xkb_compose_state *state);
 
 /**
@@ -353,7 +472,7 @@ xkb_compose_state_unref(struct xkb_compose_state *state);
  *
  * @memberof xkb_compose_state
  */
-struct xkb_compose_table *
+XKB_EXPORT struct xkb_compose_table *
 xkb_compose_state_get_compose_table(struct xkb_compose_state *state);
 
 /** Status of the Compose sequence state machine. */
@@ -421,7 +540,7 @@ enum xkb_compose_feed_result {
  *
  * @memberof xkb_compose_state
  */
-enum xkb_compose_feed_result
+XKB_EXPORT enum xkb_compose_feed_result
 xkb_compose_state_feed(struct xkb_compose_state *state,
                        xkb_keysym_t keysym);
 
@@ -433,7 +552,7 @@ xkb_compose_state_feed(struct xkb_compose_state *state,
  *
  * @memberof xkb_compose_state
  */
-void
+XKB_EXPORT void
 xkb_compose_state_reset(struct xkb_compose_state *state);
 
 /**
@@ -442,7 +561,7 @@ xkb_compose_state_reset(struct xkb_compose_state *state);
  * @see xkb_compose_status
  * @memberof xkb_compose_state
  **/
-enum xkb_compose_status
+XKB_EXPORT enum xkb_compose_status
 xkb_compose_state_get_status(struct xkb_compose_state *state);
 
 /**
@@ -473,7 +592,7 @@ xkb_compose_state_get_status(struct xkb_compose_state *state);
  *
  * @memberof xkb_compose_state
  **/
-int
+XKB_EXPORT int
 xkb_compose_state_get_utf8(struct xkb_compose_state *state,
                            char *buffer, size_t size);
 
@@ -488,7 +607,7 @@ xkb_compose_state_get_utf8(struct xkb_compose_state *state,
  *
  * @memberof xkb_compose_state
  **/
-xkb_keysym_t
+XKB_EXPORT xkb_keysym_t
 xkb_compose_state_get_one_sym(struct xkb_compose_state *state);
 
 /** @} */
