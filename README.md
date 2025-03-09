@@ -18,18 +18,12 @@ This is a Zig package which provides various X11 headers needed to develop and c
 
 ## Updating
 
-To update this repository, run `./update.sh` followed by `./verify.sh` to verify the repository contents.
+Since this repository takes files from multiple others, we connot perform a diff directly, so the procedure is to clone all of the repos
+then copy the headers over to the main folders and finally perform a diff, this way, if any of the files in said folders are different
+from those in the repos it will be seen in the diff.
 
-## Verifying repository contents
+You may simply update the files by running `update.sh` or update and diff by running `validate.sh`,
+both scripts output all their contents to the terminal as they run and both always fetch the latest version of the repos.
+If you discover that this repo is not up to date please open a pull request or an issue;
 
-For supply chain security reasons (e.g. to confirm we made no patches to the code) we provide a `git diff` command you can run to verify the contents of this repository:
-
-```sh
-./verify.sh
-```
-
-If nothing is printed, there is no diff. Deleted files, and changes to `README.md`, `build.zig`, `.github` CI files and `.gitignore` are ignored.
-
-## Issues
-
-Issues are tracked in the [main Mach repository](https://github.com/hexops/mach/issues?q=is%3Aissue+is%3Aopen+label%3Ax11-headers).
+Deleted files, and changes to README.md, build.zig, .github CI files and .gitignore are ignored in the diff.
